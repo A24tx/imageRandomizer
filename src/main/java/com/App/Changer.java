@@ -17,13 +17,16 @@ public class Changer {
         DEFAULT,
         ALPHANUMERIC
     }
-    public int MAX_FILES_TO_READ = 100;
-    public int MINIMUM_RESOLUTION = 100;
-    public int HEIGHT_LOWER_BOUND = 300;
-    public int HEIGHT_UPPER_BOUND = 1500;
-    public int WIDTH_LOWER_BOUND = 300;
-    public int WIDTH_UPPER_BOUND = 2000;
-    public FilenameMethod filenamemethod = FilenameMethod.DEFAULT;
+    // default values if failed to read from app.properties
+    private int MAX_FILES_TO_READ = 100;
+    private int MINIMUM_RESOLUTION = 100;
+    private int HEIGHT_LOWER_BOUND = 300;
+    private int HEIGHT_UPPER_BOUND = 1500;
+    private int WIDTH_LOWER_BOUND = 300;
+    private int WIDTH_UPPER_BOUND = 2000;
+    private FilenameMethod filenamemethod = FilenameMethod.DEFAULT;
+    private Boolean RESIZE_IMAGES = Boolean.TRUE;
+    private Boolean RENAME_IMAGES = Boolean.TRUE;
 
     private static final String alphanumeric_chars = "#@0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -58,8 +61,12 @@ public class Changer {
     }
     private void processImages() throws IOException{
         for(File f : files){
-            slightlyEditImg(f);
-            f = randomizeFilename(f, getExtension(f.getName()));
+            if(RESIZE_IMAGES.equals(Boolean.TRUE)) {
+                slightlyEditImg(f);
+            }
+            if(RENAME_IMAGES.equals(Boolean.TRUE)) {
+                f = randomizeFilename(f, getExtension(f.getName()));
+            }
         }
 
     }
@@ -142,7 +149,7 @@ public class Changer {
 
             filename = s.toString();
         } else{
-            filename = String.valueOf( Math.abs(random.nextLong()) % ((random.nextLong() +160000000)));
+            filename = String.valueOf( 1000 + Math.pow((random.nextInt(50)+1), (random.nextInt(5)) ));
         }
 
 
@@ -174,6 +181,9 @@ public class Changer {
             HEIGHT_UPPER_BOUND = Integer.valueOf(cfg.getProperty("HEIGHT_UPPER_BOUND"));
             WIDTH_LOWER_BOUND = Integer.valueOf(cfg.getProperty("WIDTH_LOWER_BOUND"));
             WIDTH_UPPER_BOUND = Integer.valueOf(cfg.getProperty("WIDTH_UPPER_BOUND"));
+            RESIZE_IMAGES = Boolean.valueOf(cfg.getProperty("RESIZE_IMAGES"));
+            RENAME_IMAGES = Boolean.valueOf(cfg.getProperty("RENAME_IMAGES"));
+            System.out.println("resize_images equals to "+RESIZE_IMAGES);
             String filenameMethod = cfg.getProperty("FILENAME_METHOD");
             System.out.println("all properties successfully loaded");
 
@@ -192,18 +202,25 @@ public class Changer {
 
     }
 
-
-    public static void main(String[] args){
+    protected static void executeResizeAndRename(Changer c) {
         try{
-            Changer c = new Changer();
             c.configureProgram();
             c.readFilePaths();
             c.processImages();
         } catch (Exception e){
             System.out.println("Error");
         }
-
     }
 
+    /*private static void pullUpGUI(){
+        GUIRunner gui = new GUIRunner();
+        gui.start();
+    }*/
+
+    public static void main(String[] args){
+        Changer c = new Changer();
+        //pullUpGUI(); -- not implemented
+        executeResizeAndRename(c);
+    }
 
 }
